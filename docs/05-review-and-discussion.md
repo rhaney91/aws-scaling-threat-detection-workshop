@@ -1,4 +1,4 @@
-# Module 4: Review and Discussion
+# Module 5: Review and Discussion
 
 In the last module we will have a short discussion of the workshop and discuss exactly what occurred. We will also go over a number of questions and then provide instructions on how to clean up the workshop environment to prevent future charges in your AWS account.
 
@@ -16,7 +16,7 @@ Below is a diagram of the overall workshop setup:
 
 In **Module 1** of the workshop you setup the initial components of your infrastructure including GuardDuty, Macie and a simple notification and remediation pipeline. Some of the steps required manual configuration but you also ran a CloudFormation template which setup some of the components. In **Module 2** you launched a second CloudFormation template that initiated the attack simulated by this workshop. The CloudFormation template created two EC2 instances. One instance (named **Malicious Host**) had an EIP attached to it that was added to your GuardDuty custom threat list. Although the **Malicious Host** is in the same VPC as the other instance, for the sake of the scenario (and to prevent the need to submit a penetration testing request) we acted as if it is on the Internet and represented the attack's computer. The other instance (named **Compromised Instance**) was your web server and it was taken over by the **Malicious Host**. In **Module 3** you investigated the attack, remediated the damage, and setup some automated remediations for future attacks.  
 
-**Here is what occurred in the attack:**
+**Here is what occurred in the first attack:**
 
 1. There are two instances created by the Module 2 CloudFormation template. They are in the same VPC but different subnets. The **Malicious Host** represents the attacker which we pretend is on the Internet. The Elastic IP on the **Malicious Host** is in a custom threat list in GuardDuty. The other instance named **Compromised Instance** represents the web server that was lifted and shifted into AWS.
 
