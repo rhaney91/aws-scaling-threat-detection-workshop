@@ -20,8 +20,23 @@ Next, navigate to the "Volumes" option on the left-hand side of the page.  On th
 
 Select the first volume, and go to Actions -> Create Snapshot.  Add a description for the snapshot, and create a new tag with a key of "Description" and a value of "forensics".  Note: in a real life scenario you can tag a snapshot with a ticket or incident ID to facilitate tracking.  
 
-Take a snapshot of the second volume as well:
 
-Next, go to the Snapshots menu on the left hand side.  You'll see the two forensic snapshots listed:
+Next, go to the Snapshots menu on the left hand side.  You'll see the  forensic snapshot listed:
 
-Select the first snapshot, and go to Actions -> Modify Permissions.  In this section, enter the AWS account number of your partner's account.  Repeat this process for the second snapshot.  After you and your partner have completed this section, you should be able to refresh the Snapshots screen and see your partner's shared snapshots.  In this scenario, the source account still owns the snapshot, and can choose to stop sharing or delete the snapshot at will.  Since this is part of a forensic investigation, we're going to copy the shared snapshot in to your account, the forensics account, so that there is a perminant record.  
+Select the snapshot, and go to Actions -> Modify Permissions.  In this section, enter the AWS account number of your partner's account.  After you and your partner have completed this section, you should be able to refresh the Snapshots screen and see your partner's shared snapshot.  In this scenario, the source account still owns the snapshot, and can choose to stop sharing or delete the snapshot at will.  Since this is part of a forensic investigation, we're going to copy the shared snapshot in to your account, the forensics account, so that there is a permanent record.  
+
+Select the snapshot shared with your account, and go to Actions -> Copy.  Here you can choose to encrypt the snapshot with a key in your own account as well.  Copy the snapshot to your account.  Note down the description and Snapshot ID of the newly copied snapshots.  
+
+Reminder: We're doing this step to fully copy the snapshot into our local account, which is the information security/forensics account.
+
+Next we're going to convert the snapshot to an EBS volume so we can mount it to a server for additional investigation.  From the snapshots menu, select the newly created snapshot and go to Actions -> Create volume and create the volume:
+
+Make a note of which availability zone in which the volume is created and the volume ID.  EBS volumes can only be mapped to EC2 instances in the same availability zone!  
+
+Next, go to the Instances menu on the left hand side and select "Launch Instance".  
+
+Select the Amazon Linux 2 AMI using 64-bit (x86) architecture, and hit "Select".  
+
+On the next screen, select a t2.micro instance and select "Review and Launch", then hit the blue "Launch" button in the lower-right hand side of the screen.    
+
+Create a new key pair, and download the PEM key.  Note, if you use Putty for your terminal you'll need to convert the PEM key to a PPK key using Puttygen.  
