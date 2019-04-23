@@ -29,14 +29,20 @@ Select the snapshot shared with your account, and go to Actions -> Copy.  Here y
 
 Reminder: We're doing this step to fully copy the snapshot into our local account, which is the information security/forensics account.
 
-Next we're going to convert the snapshot to an EBS volume so we can mount it to a server for additional investigation.  From the snapshots menu, select the newly created snapshot and go to Actions -> Create volume and create the volume:
-
-Make a note of which availability zone in which the volume is created and the volume ID.  EBS volumes can only be mapped to EC2 instances in the same availability zone!  
-
-Next, go to the Instances menu on the left hand side and select "Launch Instance".  
+Next, we're going to create an EC2 instance where we can mount our snapshot for investigation.  Go to the Instances menu on the left hand side and select "Launch Instance".  
 
 Select the Amazon Linux 2 AMI using 64-bit (x86) architecture, and hit "Select".  
 
 On the next screen, select a t2.micro instance and select "Review and Launch", then hit the blue "Launch" button in the lower-right hand side of the screen.    
 
-Create a new key pair, and download the PEM key.  Note, if you use Putty for your terminal you'll need to convert the PEM key to a PPK key using Puttygen.  
+Create a new key pair, and download the PEM key.  Note, if you use Putty for your terminal you'll need to convert the PEM key to a PPK key using Puttygen, <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html" target="_blank">click here for more information</a>.  Next, find the IP address for your newly create instance (if you click on the instance it's the Public DNS (IPv4) address listed, it will look like ec2-00-00-00-00.us-west2.compute.amazonaws.com).  Log in to the EC2 instance using Putty or a terminal of your choice.  The login user is "ec2-user" and no password is needed since we're using keyed SSH.  Make a note of which availability zone your instance is in, and the instance ID - we'll need that for the next step! 
+
+Next we're going to convert the snapshot to an EBS volume so we can mount it to a server for additional investigation.  Browse to the snapshots menu on the left hand side, then select the newly created snapshot and go to Actions -> Create volume and create the volume.  Make sure you change the availability zone to match the zone your instance was created in just a moment ago, EBS volumes can only be mapped to EC2 instances in the same availability zone.  Note the volume ID after creation:
+
+Browse to the Volumes menu on the left hand side and you should see your new volume.  Select the volume, go to Actions -> Attach volume, and click in the "Instance" field of the pop-up.  This should contextually bring up the EC2 instances you can attach the volume to - attach it to the instance ID for the instance we just created. 
+
+
+
+
+
+
