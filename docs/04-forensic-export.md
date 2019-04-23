@@ -24,4 +24,4 @@ Take a snapshot of the second volume as well:
 
 Next, go to the Snapshots menu on the left hand side.  You'll see the two forensic snapshots listed:
 
-Select the first snapshot, and go to Actions -> Modify Permissions.  In this section, enter the AWS account number of your partner's account.  Repeat this process for the second snapshot.  
+Select the first snapshot, and go to Actions -> Modify Permissions.  In this section, enter the AWS account number of your partner's account.  Repeat this process for the second snapshot.  After you and your partner have completed this section, you should be able to refresh the Snapshots screen and see your partner's shared snapshots.  In this scenario, the source account still owns the snapshot, and can choose to stop sharing or delete the snapshot at will.  Since this is part of a forensic investigation, we're going to copy the shared snapshot in to your account, the forensics account, so that there is a perminant record.  
