@@ -14,11 +14,15 @@ The CloudFormation script you executed in Module 2 installed an EC2 instance in 
 
 First, pair off with a partner for this exercise.  You'll be sharing your snapshot of the compromised machine with your partner's AWS account, simulating that their account is the cloud forensic account.
 
-Next, log in to your account and make sure you're in Oregon (us-west-2).  Navigate to the EC2 service and select the EC2 instance with the tag "Description" set to "forensics".  Make a note of the instance id, you'll need it to find the EBS volume(s) associated with the account.
+Next, log in to your account and make sure you're in Oregon (us-west-2).  Make a note of your account ID by clicking on the role drop-down in the upper right hand side of the AWS console:
+
+![Account ID](./images/mod4-1.png)
+
+ Navigate to the EC2 service and select the EC2 instance with the name "threat-detection-wksp: Compromised Instance".  Make a note of the instance id, you'll need it to find the EBS volume(s) associated with the account.
 
 Next, navigate to the "Volumes" option on the left-hand side of the page.  On the Volumes page, find the volume(s) attached to the EC2 instance ID:
 
-Select the first volume, and go to Actions -> Create Snapshot.  Add a description for the snapshot, and create a new tag with a key of "Description" and a value of "forensics".  Note: in a real life scenario you can tag a snapshot with a ticket or incident ID to facilitate tracking.  
+Select the volume, and go to Actions -> Create Snapshot.  Add a description for the snapshot, and create a new tag with a key of "Description" and a value of "forensics".  Note: in a real life scenario you can tag a snapshot with a ticket or incident ID to facilitate tracking.  
 
 
 Next, go to the Snapshots menu on the left hand side.  You'll see the  forensic snapshot listed:
