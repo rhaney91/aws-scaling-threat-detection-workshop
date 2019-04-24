@@ -99,7 +99,7 @@ sudo mount -o ro /dev/xvdf1 /mnt/forensics
 cd /mnt/forensics
 ```
 
-From there we can browse the contents of the compromised server's drive.
+From there we can browse the contents of the compromised server's drive.  
 
 # Exporting an image outside of AWS
 
@@ -148,7 +148,14 @@ tmpfs           395M     0  395M   0% /run/user/1000
 
 We're going to use `dd` to create a disk image of the entire volume of the compromised machine, including the boot partition:
 
-`[ec2-user@ip-172-31-60-74 exports]$ sudo dd if=/dev/xvdf bs=4K conv=sync,noerror | sudo tee /mnt/exports/forensic_image.img | md5sum > ~/forensic_image.md5`
+```
+[ec2-user@ip-172-31-60-74 exports]$ sudo dd if=/dev/xvdf bs=4K conv=sync,noerror | sudo tee /mnt/exports/forensic_image.img | md5sum > ~/forensic_image.md5
+3932160+0 records in
+3932160+0 records out
+16106127360 bytes (16 GB) copied, 251.502 s, 64.0 MB/s
+[ec2-user@ip-172-31-60-74 exports]$ cat ~/forensic_image.md5
+cc4d4a886ced224f729a5fa0a45df39d  -
+```
 
 This command is a bit lengthy, but the command uses dd with an input file of /dev/xvdf.  The sync and noerror options tell the dd program not to quit if there is a read error from the volume, and to null-fill the rest of the block if there is an error.  The command uses tee to write the image to /mnt/exports, and then pipes the output to md5sum which writes the MD5 hash of the file out to your user's home directory.  This command can take quite a while; we're cloning the entire disk, and then calculating a Md5 checksum on a roughly 8GB file!
 
