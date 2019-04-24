@@ -62,5 +62,14 @@ Browse to the Volumes menu on the left hand side and you should see your new vol
 ![Attach](./images/mod5-11.PNG)
 
 
+Switch back to Putty (or your terminal of choice) and type `sudo dmesg | tail -n 10`:
 
+```
+[ec2-user@ip-172-31-60-74 ~]$ sudo dmesg | tail -n 5
+[    4.033559] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    4.118619] random: crng init done
+[    4.118620] random: 7 urandom warning(s) missed due to ratelimiting
+[16478.272851] blkfront: xvdf: barrier or flush: disabled; persistent grants: disabled; indirect descriptors: enabled;
+[16478.332461]  xvdf: xvdf1
+```
 
