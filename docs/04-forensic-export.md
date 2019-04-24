@@ -3,7 +3,7 @@
 In this module we will discuss methods for exporting a machine image of a compromised EC2 instance for forensic analysis.  We will be exploring two different export scenarios:
 
     1. Creating a snapshot of the compromised machine and sharing it with a second AWS account (such as the central infosec account).
-    2. Creating an image of the server's block devices in S3 for download to a non-AWS environment for analysis (such as exporting to an on-prem forensic environment).
+    2. Creating an image of the server's block devices for download to a non-AWS environment for analysis (such as exporting to an on-prem forensic environment).
     
 The CloudFormation script you executed in Module 2 installed an EC2 instance in us-west-2.  
 
@@ -35,7 +35,7 @@ Select the snapshot shared with your account, and go to Actions -> Copy.  Here y
 
 Reminder: We're doing this step to fully copy the snapshot into our local account, which is the information security/forensics account.
 
-Next, we're going to create an EC2 instance where we can mount our snapshot for investigation.  Go to the Instances menu on the left hand side and select "Launch Instance".  
+Next, we're going to create an EC2 instance where we can mount our snapshot for forensic investigation.  Go to the Instances menu on the left hand side and select "Launch Instance".  
 
 ![EC2 start](./images/mod5-7.PNG)
 
@@ -62,7 +62,7 @@ Browse to the Volumes menu on the left hand side and you should see your new vol
 ![Attach](./images/mod5-11.PNG)
 
 
-Switch back to Putty (or your terminal of choice) and type `sudo dmesg | tail -n 10`:
+Switch back to Putty (or your terminal of choice) and type `sudo dmesg | tail -n 5`:
 
 ```
 [ec2-user@ip-172-31-60-74 ~]$ sudo dmesg | tail -n 5
@@ -72,4 +72,87 @@ Switch back to Putty (or your terminal of choice) and type `sudo dmesg | tail -n
 [16478.272851] blkfront: xvdf: barrier or flush: disabled; persistent grants: disabled; indirect descriptors: enabled;
 [16478.332461]  xvdf: xvdf1
 ```
+
+We can see that /dev/xvdf1 has been attached to the instance (note: your device ID may be different!), and we can confirm with fdisk:
+
+```
+[ec2-user@ip-172-31-60-74 ~]$ sudo fdisk -l /dev/xvdf
+Disk /dev/xvdf: 15 GiB, 16106127360 bytes, 31457280 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 9B950845-EC1C-437D-8C99-7E0207F60000
+
+Device       Start      End  Sectors Size Type
+/dev/xvdf1    4096 31457246 31453151  15G Linux filesystem
+/dev/xvdf128  2048     4095     2048   1M BIOS boot
+
+Partition table entries are not in disk order.
+```
+
+In this case, because the filesystem is already present on the device, we can mount the partition using the following commands (please also enter them in your terminal):
+
+```
+sudo mkdir /mnt/forensics
+sudo mount -o ro /dev/xvdf1 /mnt/forensics
+cd /mnt/forensics
+```
+
+From there we can browse the contents of the compromised server's drive.
+
+# Exporting an image outside of AWS
+
+To export this compromised drive outside of AWS, first we need to create a destination volume to hold the disk image.  In the AWS console, browse to Services -> EC2, then select "Volumes" on the left-hand menu.  
+
+Create a new volume, and make sure it's in the same availability zone as your forensic EC2 instance.  Make the volume twice as large as the compromised machine's volume, or 16GB.  Make a note of the volume ID after creation.
+
+![Export 1](./images/export1.PNG)
+
+Find the new volume in your volumes list, and go to Actions -> Attach volume.  Enter the instance ID of your forensic EC2 instance.  
+
+Switch back to Putty (or your terminal of choice) and type `sudo dmesg | tail -n 5`:
+
+```
+[ec2-user@ip-172-31-60-74 ~]$ sudo dmesg | tail -n 5
+[    4.118619] random: crng init done
+[    4.118620] random: 7 urandom warning(s) missed due to ratelimiting
+[16478.272851] blkfront: xvdf: barrier or flush: disabled; persistent grants: disabled; indirect descriptors: enabled;
+[16478.332461]  xvdf: xvdf1
+[17384.051945] blkfront: xvdg: barrier or flush: disabled; persistent grants: disabled; indirect descriptors: enabled;
+```
+
+The new volume that was just attached to the instance is /dev/xvdg.  Unlike the forensic snapshot, this block device does not have a filesystem or partition, so we'll go ahead and create those (enter these commands in your command prompt).
+
+```
+sudo parted /dev/xvdg -- mklabel gpt
+sudo parted /dev/xvdg --mkpart primary 0% 100%
+sudo mkfs.ext4 /dev/xvdg1
+sudo mkdir /mnt/exports
+sudo mount /dev/xvdg1 /mnt/exports
+```
+
+Now there is a new 16GB volume mounted at /mnt/exports:
+
+```
+[ec2-user@ip-172-31-60-74 ~]$ df -lh
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        2.0G     0  2.0G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  432K  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/xvda1       15G  1.6G   14G  11% /
+tmpfs           395M     0  395M   0% /run/user/1000
+/dev/xvdg1       16G   45M   15G   1% /mnt/exports
+```
+
+We're going to use `dd` to create a disk image of the entire volume of the compromised machine, including the boot partition:
+
+`[ec2-user@ip-172-31-60-74 exports]$ sudo dd if=/dev/xvdf bs=4K conv=sync,noerror | sudo tee /mnt/exports/forensic_image.img | md5sum > ~/forensic_image.md5`
+
+This command is a bit lengthy, but the command uses dd with an input file of /dev/xvdf.  The sync and noerror options tell the dd program not to quit if there is a read error from the volume, and to null-fill the rest of the block if there is an error.  The command uses tee to write the image to /mnt/exports, and then pipes the output to md5sum which writes the MD5 hash of the file out to your user's home directory.  This command can take quite a while; we're cloning the entire disk, and then calculating a Md5 checksum on a roughly 8GB file!
+
+Once this process completes, you will have a disk image in /mnt/exports that can be downloaded using SCP, or copied to S3 for later download.  
+
+Congratulations, you've finished module 4!
 
